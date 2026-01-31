@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link rel="icon" type="image/png" sizes="32x32" href="./images/favicon-32x32.png">
+  <link rel="stylesheet" href="styles.css">
+  
+  <title>Rock, Paper, Scissors</title>
+
+  <style>
+    .attribution { font-size: 11px; text-align: center; }
+    .attribution a { color: hsl(228, 45%, 44%); }
+  </style>
+  
+</head>
+<body>
+
+
+  <!-- ============ STEP 1: INITIAL CHOICE ============ -->
+  <section class="step-1 active" data-section="step-1">
+
+    <header>
+      <nav class="navbar">
+        <a href="BOnus.html" id="bonus-link"><img src="images/logo.svg" alt="logo" class="logo"></a>
+        <div class="score-board">
+          <div class="score-title">SCORE</div>
+          <div class="score-number" id="score-display">0</div>
+        </div> 
+      </nav>
+    </header>
+
+    <div class="game-container">
+
+      <div class="game-img">
+        <img src="images/bg-triangle.svg" alt="triangle" class="triangle">
+      </div>
+
+      <div class="paper">
+        <div class="choice choice-paper" id="choice-paper" data-choice="paper">
+          <img src="images/icon-paper.svg" alt="paper" class="paper-img">
+        </div>
+      </div>
+
+      <div class="scissors">
+        <div class="choice choice-scissors" id="choice-scissors" data-choice="scissors">
+          <img src="images/icon-scissors.svg" alt="scissors" class="scissors-img">
+        </div>
+      </div>
+
+      <div class="rock">
+        <div class="choice choice-rock" id="choice-rock" data-choice="rock">
+         <img src="images/icon-rock.svg" alt="rock" class="rock-img">
+        </div>
+      </div>
+
+    </div>
+
+    <footer class="btn">
+      <button class="rules-btn" id="rules-btn-step1">RULES</button>
+    </footer>
+
+  </section>
+
+
+
+
+
+
+  <!-- ============ STEP 2: USER CHOICE + LOADING ============ -->
+  <section class="step-2" data-section="step-2">
+
+    <header>
+      <nav class="navbar">
+        <a href="BOnus.html" id="bonus-link-step2"><img src="images/logo.svg" alt="logo" class="logo"></a>
+        <div class="score-board">
+          <div class="score-title">SCORE</div>
+          <div class="score-number score-sync">0</div>
+        </div> 
+      </nav>
+    </header>
+
+    <div class="desktop-version">
+      <div class="highlight">
+        <h4>YOU PICKED</h4>
+        <h4>THE HOUSE PICKED</h4>
+      </div>
+    </div>
+
+    <div class="game-container2">
+
+      <div>
+        <div id="user-choice-container">
+          <!-- User choice will be dynamically inserted here -->
+        </div>
+      </div>
+
+      <div>
+        <div class="blank-state loading" id="computer-loading">
+          <div class="blank">
+            <img src="" alt="" class="">
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="mobile-version">
+      <div class="highlight">
+        <h4>YOU PICKED</h4>
+        <h4>THE HOUSE PICKED</h4>
+      </div>
+    </div>
+
+    <footer class="btn">
+      <button class="rules-btn" id="rules-btn-step2">RULES</button>
+    </footer>
+
+  </section>
+
+
+
+
+
+
+  <!-- ============ STEP 3: BOTH CHOICES SHOWN ============ -->
+  <section class="step-3" data-section="step-3">
+
+    <header>
+      <nav class="navbar">
+        <a href="BOnus.html" id="bonus-link-step3"><img src="images/logo.svg" alt="logo" class="logo"></a>
+        <div class="score-board">
+          <div class="score-title">SCORE</div>
+          <div class="score-number score-sync">0</div>
+        </div> 
+      </nav>
+    </header>
+
+    <div class="desktop-version">
+      <div class="highlight">
+        <h4>YOU PICKED</h4>
+        <h4>THE HOUSE PICKED</h4>
+      </div>
+    </div>
+
+    <div class="game-container2">
+
+      <div>
+        <div id="user-choice-step3">
+          <!-- User choice will be dynamically inserted here -->
+        </div>
+      </div>
+
+      <div>
+        <div id="computer-choice-step3">
+          <!-- Computer choice will be dynamically inserted here -->
+        </div>
+      </div>
+
+    </div>
+
+    <div class="mobile-version">
+      <div class="highlight">
+        <h4>YOU PICKED</h4>
+        <h4>THE HOUSE PICKED</h4>
+      </div>
+    </div>
+
+    <footer class="btn">
+      <button class="rules-btn" id="rules-btn-step3">RULES</button>
+    </footer>
+
+  </section>
+
+
+
+
+
+
+  <!-- ============ LOSE SECTION ============ -->
+  <section class="lose-section" data-section="lose">
+
+    <header>
+      <nav class="navbar">
+        <a href="BOnus.html" id="bonus-link-lose"><img src="images/logo.svg" alt="logo" class="logo"></a>  
+        <div class="score-board">
+          <div class="score-title">SCORE</div>
+          <div class="score-number score-sync">0</div>
+        </div> 
+      </nav>
+    </header>
+
+    <div class="desktop-version">
+      <div class="highlight">
+        <h4>YOU PICKED</h4>
+        <h4>THE HOUSE PICKED</h4>
+      </div>
+    </div>
+
+    <div class="game-container2">
+
+      <div>
+        <div id="user-choice-lose">
+          <!-- User choice will be dynamically inserted here -->
+        </div>
+      </div>
+
+      <div class="desktop-version">
+        <div class="again-container">
+          <h1 id="lose-title">YOU LOSE</h1>
+          <div class="btn2"><button class="play-again" id="play-again-lose-desktop">PLAY AGAIN</button></div>
+        </div>
+      </div>
+
+      <div id="computer-choice-lose-container">
+        <div id="computer-choice-lose">
+          <!-- Computer choice will be dynamically inserted here with winner-glow -->
+        </div>
+      </div>
+
+    </div>
+
+    <div class="mobile-version">
+      <div class="highlight">
+        <h4>YOU PICKED</h4>
+        <h4>THE HOUSE PICKED</h4>
+      </div>
+    </div>
+
+    <div class="mobile-version">
+      <div class="again-container">
+        <h1 id="lose-title-mobile">YOU LOSE</h1>
+        <div class="btn2"><button class="play-again" id="play-again-lose-mobile">PLAY AGAIN</button></div>
+      </div>
+    </div>
+
+    <footer class="btn">
+      <button class="rules-btn" id="rules-btn-lose">RULES</button>
+    </footer>
+
+  </section>
+
+  
+
+
+
+
+  <!-- ============ WIN SECTION ============ -->
+  <section class="win-section" data-section="win">
+
+    <header>
+      <nav class="navbar">
+        <a href="BOnus.html" id="bonus-link-win"><img src="images/logo.svg" alt="logo" class="logo"></a>
+        <div class="score-board">
+          <div class="score-title">SCORE</div>
+          <div class="score-number score-sync">0</div>
+        </div> 
+      </nav>
+    </header>
+
+    <div class="desktop-version">
+      <div class="highlight">
+        <h4>YOU PICKED</h4>
+        <h4>THE HOUSE PICKED</h4>
+      </div>
+    </div>
+
+    <div class="game-container2">
+
+      <div id="user-choice-win-container">
+        <div id="user-choice-win">
+          <!-- User choice will be dynamically inserted here with winner-glow -->
+        </div>
+      </div>
+
+      <div class="desktop-version">
+        <div class="again-container">
+          <h1 id="win-title">YOU WIN</h1>
+          <div class="btn2"><button class="play-again" id="play-again-win-desktop">PLAY AGAIN</button></div>
+        </div>
+      </div>
+
+      <div>
+        <div id="computer-choice-win">
+          <!-- Computer choice will be dynamically inserted here -->
+        </div>
+      </div>
+
+    </div>
+
+    <div class="mobile-version">
+      <div class="highlight">
+        <h4>YOU PICKED</h4>
+        <h4>THE HOUSE PICKED</h4>
+      </div>
+    </div>
+
+    <div class="mobile-version">
+      <div class="again-container">
+        <h1 id="win-title-mobile">YOU WIN</h1>
+        <div class="btn2"><button class="play-again" id="play-again-win-mobile">PLAY AGAIN</button></div>
+      </div>
+    </div>
+
+    <footer class="btn">
+      <button class="rules-btn" id="rules-btn-win">RULES</button>
+    </footer>
+
+  </section>
+
+
+
+  <!-- ============ DRAW SECTION ============ -->
+  <section class="draw-section" data-section="draw">
+
+    <header>
+      <nav class="navbar">
+        <a href="BOnus.html" id="bonus-link-draw"><img src="images/logo.svg" alt="logo" class="logo"></a>
+        <div class="score-board">
+          <div class="score-title">SCORE</div>
+          <div class="score-number score-sync">0</div>
+        </div> 
+      </nav>
+    </header>
+
+    <div class="desktop-version">
+      <div class="highlight">
+        <h4>YOU PICKED</h4>
+        <h4>THE HOUSE PICKED</h4>
+      </div>
+    </div>
+
+    <div class="game-container2">
+
+      <div>
+        <div id="user-choice-draw">
+          <!-- User choice will be dynamically inserted here -->
+        </div>
+      </div>
+
+      <div class="desktop-version">
+        <div class="again-container">
+          <h1 id="draw-title">IT'S A DRAW</h1>
+          <div class="btn2"><button class="play-again" id="play-again-draw-desktop">PLAY AGAIN</button></div>
+        </div>
+      </div>
+
+      <div>
+        <div id="computer-choice-draw">
+          <!-- Computer choice will be dynamically inserted here -->
+        </div>
+      </div>
+
+    </div>
+
+    <div class="mobile-version">
+      <div class="highlight">
+        <h4>YOU PICKED</h4>
+        <h4>THE HOUSE PICKED</h4>
+      </div>
+    </div>
+
+    <div class="mobile-version">
+      <div class="again-container">
+        <h1 id="draw-title-mobile">IT'S A DRAW</h1>
+        <div class="btn2"><button class="play-again" id="play-again-draw-mobile">PLAY AGAIN</button></div>
+      </div>
+    </div>
+
+    <footer class="btn">
+      <button class="rules-btn" id="rules-btn-draw">RULES</button>
+    </footer>
+
+  </section>
+
+
+
+  <!-- ============ MODALS ============ -->
+  <section class="modal2">
+
+    <!-- Rules Modal -->
+    <div class="modal" id="rules-modal">
+      <div class="modal-content">
+        <div class="flex-x">
+          <h2>RULES</h2>
+          <img src="images/icon-close.svg" alt="icon-close" class="close-btn desktop-version" id="close-rules-desktop">
+        </div>
+        <img src="images/image-rules.svg" alt="rules" class="rules-img">
+        <img src="images/icon-close.svg" alt="icon-close" class="close-btn mobile-version" id="close-rules-mobile">
+      </div>
+    </div>
+
+    <!-- Bonus Game Promotion Modal (after 3 games) -->
+    <div class="modal" id="bonus-promo-modal">
+      <div class="modal-content">
+        <h2>Try the Bonus Game!</h2>
+        <p style="color: hsl(229, 25%, 31%); margin: 20px 0;">Play Rock, Paper, Scissors, Spock, Lizard <span id="bonus-now-btn" style="background: hsl(349, 71%, 52%); color: white; padding: 8px 20px; border-radius: 8px; cursor: pointer; display: inline-block; font-weight: bold;">Now</span></p>
+        <img src="images/icon-close.svg" alt="icon-close" class="close-btn" id="close-bonus-promo" style="margin-top: 20px;">
+      </div>
+    </div>
+
+  </section>
+  
+
+<script src="game.js"></script>
+</body>
+</html>
