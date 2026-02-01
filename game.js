@@ -425,12 +425,16 @@ function resetGame() {
 // ========================================
 
 function setupRulesListeners() {
-    // Get all rules buttons
+    // Get all rules buttons (across all sections)
     const rulesButtons = document.querySelectorAll('.rules-btn');
+    console.log(`🎯 Found ${rulesButtons.length} rules buttons`);
+    
     rulesButtons.forEach(button => {
-        button.addEventListener('click', () => {
+        button.addEventListener('click', (e) => {
+            e.preventDefault();
             playSound('click');
             showRulesModal();
+            console.log('🔘 Rules button clicked');
         });
     });
 }
@@ -498,9 +502,22 @@ function setupModalListeners() {
 function showRulesModal() {
     const modalId = currentPage === 'bonus' ? 'bonus-rules-modal' : 'rules-modal';
     const modal = document.getElementById(modalId);
+    
+    console.log('🔍 Looking for modal:', modalId);
+    console.log('📦 Modal element found:', modal);
+    console.log('🎨 Modal current classes:', modal?.className);
+    console.log('🎨 Modal display style:', modal ? window.getComputedStyle(modal).display : 'not found');
+    
     if (modal) {
         modal.classList.add('show');
-        console.log('📖 Rules modal opened:', modalId);
+        console.log('✅ Added "show" class to modal');
+        console.log('🎨 Modal classes after:', modal.className);
+        
+        // Force display check
+        setTimeout(() => {
+            const computedDisplay = window.getComputedStyle(modal).display;
+            console.log('🎨 Modal display after show:', computedDisplay);
+        }, 100);
     } else {
         console.error('❌ Rules modal not found:', modalId);
     }
