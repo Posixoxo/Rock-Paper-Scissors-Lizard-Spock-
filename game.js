@@ -1,18 +1,18 @@
 // ========================================
-// ROCK PAPER SCISSORS GAME - COMPLETE LOGIC
+// ROCK PAPER SCISSORS — GAME LOGIC
 // ========================================
 
-// ========================================
-// GLOBAL STATE & CONFIGURATION
-// ========================================
-
-let currentPage = 'original'; // 'original' or 'bonus'
+let currentPage = 'original';
 let userChoice = null;
 let computerChoice = null;
 let score = 0;
 let gameCount = 0;
 
-// Game Rules
+// Keep a direct reference to the currently active section.
+// showSection() only touches this one element + the new target,
+// instead of looping all 7+ sections every transition.
+let activeSection = null;
+
 const originalRules = {
     paper: ['rock'],
     rock: ['scissors'],
@@ -27,7 +27,6 @@ const bonusRules = {
     spock: ['scissors', 'rock']
 };
 
-// Choice wrapper classes for dynamic insertion
 const choiceWrappers = {
     paper: 'paper2',
     rock: 'rock2',
@@ -38,98 +37,72 @@ const choiceWrappers = {
 
 
 // ========================================
-// SOUND EFFECTS MANAGER
+// SOUND EFFECTS
 // ========================================
 
-const soundEffects = {
-    win: null,
-    lose: null,
-    draw: null,
-    click: null
-};
+const soundEffects = { win: null, lose: null, draw: null, click: null };
 
 function initSounds() {
-    // Check if sound files exist, create Audio objects
     try {
-        soundEffects.win = new Audio('sounds/win.mp3');
-        soundEffects.lose = new Audio('sounds/lose.mp3');
-        soundEffects.draw = new Audio('sounds/draw.mp3');
+        soundEffects.win   = new Audio('sounds/win.mp3');
+        soundEffects.lose  = new Audio('sounds/lose.mp3');
+        soundEffects.draw  = new Audio('sounds/draw.mp3');
         soundEffects.click = new Audio('sounds/click.mp3');
-        
-        // Set volume levels
-        Object.values(soundEffects).forEach(sound => {
-            if (sound) sound.volume = 0.5;
-        });
+
+        // Prefetch: tell the browser to fetch + decode now,
+        // so the first .play() is instant instead of waiting for network.
+        for (const key in soundEffects) {
+            const s = soundEffects[key];
+            s.volume = 0.5;
+            s.preload = 'auto';
+            s.load();           // triggers the fetch immediately
+        }
     } catch (e) {
-        console.log('Sound files not found. Game will run without sound effects.');
+        // No sound files — game runs silently, no errors.
     }
 }
 
-function playSound(soundName) {
-    const sound = soundEffects[soundName];
-    if (sound) {
-        // Reset to start if already playing
-        sound.currentTime = 0;
-        sound.play().catch(e => {
-            // Ignore errors (browser might block autoplay)
-            console.log('Sound playback blocked:', e);
-        });
-    }
+function playSound(name) {
+    const s = soundEffects[name];
+    if (!s) return;
+    s.currentTime = 0;
+    s.play().catch(() => {});   // swallow autoplay block silently
 }
 
 
 // ========================================
-// INITIALIZATION
+// INIT
 // ========================================
 
 document.addEventListener('DOMContentLoaded', () => {
-    initializeGame();
-});
-
-function initializeGame() {
-    // Detect which page we're on
     currentPage = document.querySelector('.bonus-step-1') ? 'bonus' : 'original';
-    
-    // Initialize sounds
+
     initSounds();
-    
-    // Load score from localStorage
     loadScore();
-    
-    // Setup event listeners
+
+    // Cache the initially active section
+    activeSection = document.querySelector('section.active');
+
     setupChoiceListeners();
     setupPlayAgainListeners();
     setupRulesListeners();
     setupModalListeners();
-    
-    // Show bonus navigation modal on first visit (bonus page only)
+
     if (currentPage === 'bonus') {
         showBonusNavModal();
-    }
-    
-    // Check if we should show bonus promo (original page only)
-    if (currentPage === 'original') {
+    } else {
         checkBonusPromo();
     }
-    
-    console.log('🎮 Rock Paper Scissors Game Initialized');
-    console.log(`📄 Current Page: ${currentPage}`);
-    console.log(`🏆 Current Score: ${score}`);
-    console.log(`🎯 Games Played: ${gameCount}`);
-}
+});
 
 
 // ========================================
-// SCORE MANAGEMENT
+// SCORE
 // ========================================
 
 function loadScore() {
-    const savedScore = localStorage.getItem('rps-score');
-    const savedGameCount = localStorage.getItem('rps-game-count');
-    
-    score = savedScore ? parseInt(savedScore) : 0;
-    gameCount = savedGameCount ? parseInt(savedGameCount) : 0;
-    
+    score     = parseInt(localStorage.getItem('rps-score'), 10)     || 0;
+    gameCount = parseInt(localStorage.getItem('rps-game-count'), 10) || 0;
     updateScoreDisplay();
 }
 
@@ -139,357 +112,242 @@ function saveScore() {
 }
 
 function updateScoreDisplay() {
-    // Update main score display
-    const mainScoreEl = document.getElementById(currentPage === 'bonus' ? 'bonus-score-display' : 'score-display');
-    if (mainScoreEl) {
-        mainScoreEl.textContent = score;
-    }
-    
-    // Update all synced score displays
     const syncClass = currentPage === 'bonus' ? 'bonus-score-sync' : 'score-sync';
-    document.querySelectorAll(`.${syncClass}`).forEach(el => {
+    const mainId    = currentPage === 'bonus' ? 'bonus-score-display' : 'score-display';
+
+    const mainEl = document.getElementById(mainId);
+    if (mainEl) mainEl.textContent = score;
+
+    document.querySelectorAll('.' + syncClass).forEach(el => {
         el.textContent = score;
     });
 }
 
-function incrementScore() {
-    score++;
-    saveScore();
-    updateScoreDisplay();
-}
-
-function decrementScore() {
-    score--;
-    saveScore();
-    updateScoreDisplay();
-}
-
 
 // ========================================
-// SECTION NAVIGATION
+// SECTION NAVIGATION (optimised)
 // ========================================
 
 function showSection(sectionName) {
-    // Remove active class from all sections
-    document.querySelectorAll('section').forEach(section => {
-        section.classList.remove('active');
-    });
-    
-    // Add active class to target section
-    const targetSection = document.querySelector(`[data-section="${sectionName}"]`);
-    if (targetSection) {
-        targetSection.classList.add('active');
+    // Hide only the currently active section — no loop over all sections.
+    if (activeSection) {
+        activeSection.classList.remove('active');
+    }
+
+    const target = document.querySelector('[data-section="' + sectionName + '"]');
+    if (target) {
+        target.classList.add('active');
+        activeSection = target;
     }
 }
 
 
 // ========================================
-// CHOICE SELECTION & GAME FLOW
+// GAME FLOW
 // ========================================
 
 function setupChoiceListeners() {
-    // Original game choices
-    const originalChoices = document.querySelectorAll('.step-1 .choice');
-    originalChoices.forEach(choice => {
-        choice.addEventListener('click', () => {
-            playSound('click');
-            handleUserChoice(choice);
-        });
+    document.querySelectorAll('.step-1 .choice').forEach(el => {
+        el.addEventListener('click', () => { playSound('click'); handleUserChoice(el); });
     });
-    
-    // Bonus game choices
-    const bonusChoices = document.querySelectorAll('.bonus-step-1 .choice2');
-    bonusChoices.forEach(choice => {
-        choice.addEventListener('click', () => {
-            playSound('click');
-            handleUserChoice(choice);
-        });
+    document.querySelectorAll('.bonus-step-1 .choice2').forEach(el => {
+        el.addEventListener('click', () => { playSound('click'); handleUserChoice(el); });
     });
 }
 
 function handleUserChoice(choiceElement) {
-    // Get user's choice from data attribute
     userChoice = choiceElement.dataset.choice;
-    
-    // Determine step names based on current page
+
     const step2 = currentPage === 'bonus' ? 'bonus-step-2' : 'step-2';
     const step3 = currentPage === 'bonus' ? 'bonus-step-3' : 'step-3';
-    
-    // Show step 2 with user's choice
+
     showSection(step2);
     displayUserChoice(userChoice, step2);
-    
-    // Generate computer choice (done now, but hidden from user)
-    const choices = currentPage === 'bonus' 
+
+    // Generate computer choice now (hidden from user until step3)
+    const pool = currentPage === 'bonus'
         ? ['rock', 'paper', 'scissors', 'lizard', 'spock']
         : ['rock', 'paper', 'scissors'];
-    computerChoice = choices[Math.floor(Math.random() * choices.length)];
-    
-    // After 1.5 seconds (ripple effect), show step 3 with computer choice
+    computerChoice = pool[Math.floor(Math.random() * pool.length)];
+
+    // Ripple plays for 1.8s, then reveal computer choice.
+    // Computer zoom animation is 0.5s; after that 600ms is enough before showing result.
+    // Total: 1800 + 600 = 2400ms (was 2800ms).
     setTimeout(() => {
         showSection(step3);
         displayUserChoice(userChoice, step3);
         displayComputerChoice(computerChoice, step3);
-        
-        // After another 1 second, determine winner and show result
-        setTimeout(() => {
-            determineWinner();
-        }, 1000);
+
+        setTimeout(determineWinner, 600);
     }, 1800);
 }
 
 function displayUserChoice(choice, section) {
-    const containerPrefix = currentPage === 'bonus' ? 'bonus-' : '';
-    let containerId;
-    
-    if (section.includes('step-2')) {
-        containerId = `${containerPrefix}user-choice-container`;
-    } else if (section.includes('step-3')) {
-        containerId = `${containerPrefix}user-choice-step3`;
-    }
-    
-    const container = document.getElementById(containerId);
-    if (!container) return;
-    
-    const choiceHTML = createChoiceHTML(choice);
-    container.innerHTML = choiceHTML;
+    const prefix = currentPage === 'bonus' ? 'bonus-' : '';
+    const id = section.includes('step-2')
+        ? prefix + 'user-choice-container'
+        : prefix + 'user-choice-step3';
+
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = createChoiceHTML(choice);
 }
 
-function displayComputerChoice(choice, section) {
-    const containerPrefix = currentPage === 'bonus' ? 'bonus-' : '';
-    const containerId = `${containerPrefix}computer-choice-step3`;
-    
-    const container = document.getElementById(containerId);
-    if (!container) return;
-    
-    const choiceHTML = createChoiceHTML(choice);
-    container.innerHTML = choiceHTML;
-    
-    // Add zoom animation
-    const choiceWrapper = container.querySelector(`.${choiceWrappers[choice]}`);
-    if (choiceWrapper) {
-        choiceWrapper.classList.add('computer-choice-animate');
-    }
+function displayComputerChoice(choice) {
+    const prefix = currentPage === 'bonus' ? 'bonus-' : '';
+    const el = document.getElementById(prefix + 'computer-choice-step3');
+    if (!el) return;
+
+    el.innerHTML = createChoiceHTML(choice);
+
+    const wrapper = el.querySelector('.' + choiceWrappers[choice]);
+    if (wrapper) wrapper.classList.add('computer-choice-animate');
 }
 
 function createChoiceHTML(choice) {
-    const wrapperClass = choiceWrappers[choice];
-    const choiceClass = `choice-${choice}`;
-    const imgSrc = `images/icon-${choice}.svg`;
-    const imgClass = `${choice}-img`;
-    
-    return `
-        <div class="${wrapperClass}">
-            <div class="choice ${choiceClass}">
-                <img src="${imgSrc}" alt="${choice}" class="${imgClass}">
-            </div>
-        </div>
-    `;
+    return '<div class="' + choiceWrappers[choice] + '">'
+         + '<div class="choice choice-' + choice + '">'
+         + '<img src="images/icon-' + choice + '.svg" alt="' + choice + '" class="' + choice + '-img">'
+         + '</div></div>';
 }
 
 
 // ========================================
-// GAME LOGIC & WINNER DETERMINATION
+// WINNER LOGIC
 // ========================================
 
 function determineWinner() {
     const rules = currentPage === 'bonus' ? bonusRules : originalRules;
-    
     let result;
+
     if (userChoice === computerChoice) {
         result = 'draw';
-        // No score change on draw
     } else if (rules[userChoice] && rules[userChoice].includes(computerChoice)) {
         result = 'win';
-        incrementScore();
+        score++;
     } else {
         result = 'lose';
-        decrementScore();
+        score--;
     }
-    
-    // Increment game count
+
     gameCount++;
     saveScore();
-    
-    // Play sound effect
+    updateScoreDisplay();
     playSound(result);
-    
-    // Show result section
     showResultSection(result);
 }
 
 function showResultSection(result) {
-    const containerPrefix = currentPage === 'bonus' ? 'bonus-' : '';
-    let sectionName;
-    
-    if (result === 'draw') {
-        sectionName = `${containerPrefix}draw`;
-    } else if (result === 'win') {
-        sectionName = `${containerPrefix}win`;
-    } else {
-        sectionName = `${containerPrefix}lose`;
-    }
-    
-    showSection(sectionName);
-    
-    // Display choices in result section
+    const prefix = currentPage === 'bonus' ? 'bonus-' : '';
+    showSection(prefix + result);
     displayResultChoices(result);
 }
 
 function displayResultChoices(result) {
-    const containerPrefix = currentPage === 'bonus' ? 'bonus-' : '';
-    
-    if (result === 'win') {
-        // User choice (with winner glow)
-        const userContainer = document.getElementById(`${containerPrefix}user-choice-win`);
-        if (userContainer) {
-            userContainer.innerHTML = createChoiceHTML(userChoice);
-            // Add winner glow to wrapper
-            const wrapper = userContainer.querySelector(`.${choiceWrappers[userChoice]}`);
-            if (wrapper) {
-                wrapper.classList.add('winner-glow');
-            }
-        }
-        
-        // Computer choice (no glow)
-        const computerContainer = document.getElementById(`${containerPrefix}computer-choice-win`);
-        if (computerContainer) {
-            computerContainer.innerHTML = createChoiceHTML(computerChoice);
-        }
-        
-    } else if (result === 'lose') {
-        // User choice (no glow)
-        const userContainer = document.getElementById(`${containerPrefix}user-choice-lose`);
-        if (userContainer) {
-            userContainer.innerHTML = createChoiceHTML(userChoice);
-        }
-        
-        // Computer choice (with winner glow)
-        const computerContainer = document.getElementById(`${containerPrefix}computer-choice-lose`);
-        if (computerContainer) {
-            computerContainer.innerHTML = createChoiceHTML(computerChoice);
-            // Add winner glow to wrapper
-            const wrapper = computerContainer.querySelector(`.${choiceWrappers[computerChoice]}`);
-            if (wrapper) {
-                wrapper.classList.add('winner-glow');
-            }
-        }
-        
-    } else if (result === 'draw') {
-        // Both choices, no glow
-        const userContainer = document.getElementById(`${containerPrefix}user-choice-draw`);
-        if (userContainer) {
-            userContainer.innerHTML = createChoiceHTML(userChoice);
-        }
-        
-        const computerContainer = document.getElementById(`${containerPrefix}computer-choice-draw`);
-        if (computerContainer) {
-            computerContainer.innerHTML = createChoiceHTML(computerChoice);
-        }
+    const prefix = currentPage === 'bonus' ? 'bonus-' : '';
+
+    const userEl     = document.getElementById(prefix + 'user-choice-'     + result);
+    const compEl     = document.getElementById(prefix + 'computer-choice-' + result);
+
+    if (userEl)  userEl.innerHTML  = createChoiceHTML(userChoice);
+    if (compEl)  compEl.innerHTML  = createChoiceHTML(computerChoice);
+
+    // Winner gets the glow — user on win, computer on lose, neither on draw.
+    if (result === 'win' && userEl) {
+        const w = userEl.querySelector('.' + choiceWrappers[userChoice]);
+        if (w) w.classList.add('winner-glow');
+    }
+    if (result === 'lose' && compEl) {
+        const w = compEl.querySelector('.' + choiceWrappers[computerChoice]);
+        if (w) w.classList.add('winner-glow');
     }
 }
 
 
 // ========================================
-// PLAY AGAIN FUNCTIONALITY
+// PLAY AGAIN
 // ========================================
 
 function setupPlayAgainListeners() {
-    const playAgainButtons = document.querySelectorAll('.play-again');
-    playAgainButtons.forEach(button => {
-        button.addEventListener('click', () => {
+    document.querySelectorAll('.play-again').forEach(btn => {
+        btn.addEventListener('click', () => {
             playSound('click');
-            resetGame();
+            userChoice = null;
+            computerChoice = null;
+            showSection(currentPage === 'bonus' ? 'bonus-step-1' : 'step-1');
+            if (currentPage === 'original') checkBonusPromo();
         });
     });
 }
 
-function resetGame() {
-    // Reset choices
-    userChoice = null;
-    computerChoice = null;
-    
-    // Go back to step 1
-    const step1 = currentPage === 'bonus' ? 'bonus-step-1' : 'step-1';
-    showSection(step1);
-    
-    // Check if we should show bonus promo (every 3 games on original)
-    if (currentPage === 'original') {
-        checkBonusPromo();
-    }
-}
-
 
 // ========================================
-// MODAL MANAGEMENT
+// MODALS
 // ========================================
 
 function setupRulesListeners() {
-    // Get all rules buttons (across all sections)
-    const rulesButtons = document.querySelectorAll('.rules-btn');
-    console.log(`🎯 Found ${rulesButtons.length} rules buttons`);
-    
-    rulesButtons.forEach(button => {
-        button.addEventListener('click', (e) => {
+    document.querySelectorAll('.rules-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
             e.preventDefault();
             playSound('click');
-            showRulesModal();
-            console.log('🔘 Rules button clicked');
+            const modalId = currentPage === 'bonus' ? 'bonus-rules-modal' : 'rules-modal';
+            const modal = document.getElementById(modalId);
+            if (modal) modal.classList.add('show');
         });
     });
 }
 
 function setupModalListeners() {
-    // Rules modal close buttons
-    const closeRulesDesktop = document.getElementById(currentPage === 'bonus' ? 'bonus-close-rules-desktop' : 'close-rules-desktop');
-    const closeRulesMobile = document.getElementById(currentPage === 'bonus' ? 'bonus-close-rules-mobile' : 'close-rules-mobile');
-    
-    if (closeRulesDesktop) {
-        closeRulesDesktop.addEventListener('click', () => {
-            playSound('click');
-            closeRulesModal();
-        });
-    }
-    if (closeRulesMobile) {
-        closeRulesMobile.addEventListener('click', () => {
-            playSound('click');
-            closeRulesModal();
-        });
-    }
-    
-    // Bonus promo modal (original page)
+    // Close buttons for rules modal
+    const closeDesktop = document.getElementById(
+        currentPage === 'bonus' ? 'bonus-close-rules-desktop' : 'close-rules-desktop'
+    );
+    const closeMobile = document.getElementById(
+        currentPage === 'bonus' ? 'bonus-close-rules-mobile' : 'close-rules-mobile'
+    );
+
+    const closeRules = () => {
+        playSound('click');
+        const modalId = currentPage === 'bonus' ? 'bonus-rules-modal' : 'rules-modal';
+        const modal = document.getElementById(modalId);
+        if (modal) modal.classList.remove('show');
+    };
+
+    if (closeDesktop) closeDesktop.addEventListener('click', closeRules);
+    if (closeMobile)  closeMobile.addEventListener('click', closeRules);
+
+    // Bonus promo modal (original page only)
     if (currentPage === 'original') {
         const closePromo = document.getElementById('close-bonus-promo');
-        const bonusNowBtn = document.getElementById('bonus-now-btn');
-        
         if (closePromo) {
             closePromo.addEventListener('click', () => {
                 playSound('click');
-                closeBonusPromoModal();
+                const m = document.getElementById('bonus-promo-modal');
+                if (m) m.classList.remove('show');
             });
         }
-        if (bonusNowBtn) {
-            bonusNowBtn.addEventListener('click', () => {
+        const bonusNow = document.getElementById('bonus-now-btn');
+        if (bonusNow) {
+            bonusNow.addEventListener('click', () => {
                 playSound('click');
-                goToBonusGame();
+                window.location.href = 'BOnus.html';
             });
         }
     }
-    
-    // Bonus nav info modal (bonus page)
+
+    // Nav info modal (bonus page only)
     if (currentPage === 'bonus') {
-        const closeNavInfo = document.getElementById('close-bonus-nav-info');
-        if (closeNavInfo) {
-            closeNavInfo.addEventListener('click', () => {
+        const closeNav = document.getElementById('close-bonus-nav-info');
+        if (closeNav) {
+            closeNav.addEventListener('click', () => {
                 playSound('click');
-                closeBonusNavModal();
+                const m = document.getElementById('bonus-nav-info-modal');
+                if (m) m.classList.remove('show');
             });
         }
     }
-    
-    // Close modals when clicking outside
-    const modals = document.querySelectorAll('.modal');
-    modals.forEach(modal => {
+
+    // Click-outside-to-close for every modal
+    document.querySelectorAll('.modal').forEach(modal => {
         modal.addEventListener('click', (e) => {
             if (e.target === modal) {
                 playSound('click');
@@ -499,108 +357,22 @@ function setupModalListeners() {
     });
 }
 
-function showRulesModal() {
-    const modalId = currentPage === 'bonus' ? 'bonus-rules-modal' : 'rules-modal';
-    const modal = document.getElementById(modalId);
-    
-    console.log('🔍 Looking for modal:', modalId);
-    console.log('📦 Modal element found:', modal);
-    console.log('🎨 Modal current classes:', modal?.className);
-    console.log('🎨 Modal display style:', modal ? window.getComputedStyle(modal).display : 'not found');
-    
-    if (modal) {
-        modal.classList.add('show');
-        console.log('✅ Added "show" class to modal');
-        console.log('🎨 Modal classes after:', modal.className);
-        
-        // Force display check
-        setTimeout(() => {
-            const computedDisplay = window.getComputedStyle(modal).display;
-            console.log('🎨 Modal display after show:', computedDisplay);
-        }, 100);
-    } else {
-        console.error('❌ Rules modal not found:', modalId);
-    }
-}
-
-function closeRulesModal() {
-    const modalId = currentPage === 'bonus' ? 'bonus-rules-modal' : 'rules-modal';
-    const modal = document.getElementById(modalId);
-    if (modal) {
-        modal.classList.remove('show');
-        console.log('📖 Rules modal closed:', modalId);
-    }
-}
-
 function checkBonusPromo() {
-    // Show bonus promo modal after every 3 games
-    if (gameCount > 0 && gameCount % 3 === 0) {
-        const alreadyShown = sessionStorage.getItem('bonus-promo-shown');
-        if (!alreadyShown) {
-            setTimeout(() => {
-                showBonusPromoModal();
-                sessionStorage.setItem('bonus-promo-shown', 'true');
-            }, 500);
-        }
-    }
-}
-
-function showBonusPromoModal() {
-    const modal = document.getElementById('bonus-promo-modal');
-    if (modal) {
-        modal.classList.add('show');
-        console.log('🎁 Bonus promo modal opened');
-    }
-}
-
-function closeBonusPromoModal() {
-    const modal = document.getElementById('bonus-promo-modal');
-    if (modal) {
-        modal.classList.remove('show');
-    }
-}
-
-function goToBonusGame() {
-    window.location.href = 'BOnus.html';
-}
-
-function showBonusNavModal() {
-    // Only show once per session
-    const alreadyShown = sessionStorage.getItem('bonus-nav-shown');
-    if (!alreadyShown) {
+    if (gameCount > 0 && gameCount % 3 === 0 && !sessionStorage.getItem('bonus-promo-shown')) {
         setTimeout(() => {
-            const modal = document.getElementById('bonus-nav-info-modal');
-            if (modal) {
-                modal.classList.add('show');
-                sessionStorage.setItem('bonus-nav-shown', 'true');
-                console.log('ℹ️ Bonus nav info modal opened');
-            }
+            const m = document.getElementById('bonus-promo-modal');
+            if (m) m.classList.add('show');
+            sessionStorage.setItem('bonus-promo-shown', 'true');
         }, 500);
     }
 }
 
-function closeBonusNavModal() {
-    const modal = document.getElementById('bonus-nav-info-modal');
-    if (modal) {
-        modal.classList.remove('show');
+function showBonusNavModal() {
+    if (!sessionStorage.getItem('bonus-nav-shown')) {
+        setTimeout(() => {
+            const m = document.getElementById('bonus-nav-info-modal');
+            if (m) m.classList.add('show');
+            sessionStorage.setItem('bonus-nav-shown', 'true');
+        }, 500);
     }
 }
-
-
-// ========================================
-// UTILITY FUNCTIONS
-// ========================================
-
-// Prevent page navigation during active game
-window.addEventListener('beforeunload', (e) => {
-    // Score is already saved, no warning needed
-    // This is just a placeholder if you want to add warnings later
-});
-
-// Handle logo clicks for smooth navigation
-document.addEventListener('click', (e) => {
-    if (e.target.closest('a[href="BOnus.html"], a[href="index.html"]')) {
-        // Let the default navigation happen
-        // Score is already saved in localStorage
-    }
-});

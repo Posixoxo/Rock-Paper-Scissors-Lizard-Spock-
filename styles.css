@@ -101,10 +101,10 @@ header a{
     background-color: white;
     border-top: 4px solid hsl(0, 0%, 73%);
     border-radius: 50%;
-    padding: 18px 26px;
+    padding: 18px;
     width: 55px;
     height: 55px;
-    max-width: 100%;
+    flex-shrink: 0;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -123,7 +123,7 @@ header a{
     padding: 20px;
     width: 25px;
     height: 25px;
-    max-width: 100%;
+    flex-shrink: 0;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -531,7 +531,7 @@ header a{
 section:not(.modal2) {
     display: none;
     opacity: 0;
-    transition: opacity 0.4s ease-in-out;
+    transition: opacity 0.15s ease-out;
 }
 
 section.active {
@@ -539,7 +539,6 @@ section.active {
     opacity: 1;
 }
 
-/* Modal section should always be visible (contains hidden modals) */
 section.modal2 {
     display: block;
     position: relative;
