@@ -817,7 +817,7 @@ header{
 }
 
 .name-input-container input {
-    width: 100%;
+    width: 87%;
     padding: 12px 15px;
     border: 2px solid hsl(246, 11%, 37%);
     border-radius: 8px;
@@ -1596,4 +1596,15 @@ header{
     .stats-grid {
         grid-template-columns: repeat(2, 1fr);
     }
+
+    .name-input-container input {
+        width: 90%;
+    }
+}
+
+@media (max-width: 1024){
+    .name-input-container input {
+        width: 100%;
+    }
+
 }
