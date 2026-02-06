@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="./images/favicon-32x32.png">
+  <link rel="stylesheet" href="styles.css">
+  <title>Multiplayer - Rock Paper Scissors</title>
+</head>
+<body>
+
+  <!-- ============ MODE SELECTION (Home) ============ -->
+  <section class="mode-selection active" data-section="mode-selection">
+    <header>
+      <nav class="navbar">
+        <a href="index.html" id="bonus-link"><img src="images/logo.svg" alt="logo" class="logo"></a>
+        <div class="score-board">
+          <div class="score-title">YOUR STATS</div>
+          <div class="score-number" id="player-stats">0-0</div>
+        </div>
+      </nav>
+    </header>
+
+    <div class="mode-container">
+      <h1 class="mode-title">CHOOSE MODE</h1>
+      
+      <div class="mode-options">
+        <button class="mode-btn computer-mode" id="btn-vs-computer">
+          <span class="mode-icon">🤖</span>
+          <span class="mode-text">vs COMPUTER</span>
+          <span class="mode-desc">Play against AI</span>
+        </button>
+
+        <button class="mode-btn player-mode" id="btn-vs-player">
+          <span class="mode-icon">👥</span>
+          <span class="mode-text">vs PLAYER</span>
+          <span class="mode-desc">Play with a friend online</span>
+        </button>
+      </div>
+
+      <button class="history-btn" id="btn-view-history">📊 View History</button>
+    </div>
+  </section>
+
+
+  <!-- ============ MULTIPLAYER LOBBY ============ -->
+  <section class="multiplayer-lobby" data-section="lobby">
+    <header>
+      <nav class="navbar">
+        <img src="images/logo.svg" alt="logo" class="logo">
+        <button class="back-btn" id="lobby-back">← Back</button>
+      </nav>
+    </header>
+
+    <div class="lobby-container">
+      <h1 class="lobby-title">MULTIPLAYER LOBBY</h1>
+
+      <div class="name-input-container">
+        <label for="player-name">Your Name:</label>
+        <input 
+          type="text" 
+          id="player-name" 
+          placeholder="Enter your name" 
+          maxlength="15"
+          autocomplete="off"
+        >
+      </div>
+
+      <div class="game-mode-selector">
+        <label>Game Mode:</label>
+        <div class="mode-toggle">
+          <button class="toggle-btn active" data-mode="original">
+            <img src="images/logo.svg" alt="Original" style="width: 40px;">
+            <span>3 Choices</span>
+          </button>
+          <button class="toggle-btn" data-mode="bonus">
+            <img src="images/logo-bonus.svg" alt="Bonus" style="width: 30px;">
+            <span>5 Choices</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="lobby-actions">
+        <button class="lobby-btn create-btn" id="btn-create-game">
+          <span>🎮</span>
+          <span>CREATE GAME</span>
+        </button>
+
+        <div class="divider">OR</div>
+
+        <div class="join-container">
+          <input 
+            type="text" 
+            id="game-code-input" 
+            placeholder="Enter game code" 
+            maxlength="6"
+            autocomplete="off"
+          >
+          <button class="lobby-btn join-btn" id="btn-join-game">JOIN</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ============ WAITING ROOM ============ -->
+  <section class="waiting-room" data-section="waiting">
+    <header>
+      <nav class="navbar">
+        <img src="images/logo.svg" alt="logo" class="logo">
+        <button class="back-btn" id="waiting-back">← Cancel</button>
+      </nav>
+    </header>
+
+    <div class="waiting-container">
+      <h2 class="waiting-title">WAITING FOR OPPONENT</h2>
+
+      <div class="game-code-display">
+        <div class="code-label">Game Code:</div>
+        <div class="code-value" id="display-game-code">------</div>
+      </div>
+
+      <div class="share-options">
+        <button class="share-btn" id="btn-copy-code">
+          📋 Copy Code
+        </button>
+        <button class="share-btn" id="btn-copy-link">
+          🔗 Copy Link
+        </button>
+      </div>
+
+      <div class="waiting-animation">
+        <div class="spinner"></div>
+        <p class="waiting-text">Waiting for player to join...</p>
+      </div>
+
+      <div class="player-info">
+        <p>Host: <strong id="host-name">You</strong></p>
+        <p>Mode: <strong id="game-mode-display">3 Choices</strong></p>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ============ MULTIPLAYER GAMEPLAY ============ -->
+  <section class="multiplayer-game" data-section="gameplay">
+    <header>
+      <nav class="navbar">
+        <img src="images/logo.svg" alt="logo" class="logo">
+        <button class="back-btn" id="game-back">← Leave</button>
+      </nav>
+    </header>
+
+    <!-- Scoreboard -->
+    <div class="mp-scoreboard">
+      <div class="mp-player you">
+        <div class="player-name" id="mp-your-name">You</div>
+        <div class="player-score" id="mp-your-score">0</div>
+      </div>
+      <div class="mp-vs">
+        <div class="vs-icon">⚔️</div>
+        <div class="target">First to 10 wins!</div>
+      </div>
+      <div class="mp-player opponent">
+        <div class="player-name" id="mp-opponent-name">Opponent</div>
+        <div class="player-score" id="mp-opponent-score">0</div>
+      </div>
+    </div>
+
+    <!-- Game Area -->
+    <div class="mp-game-area">
+      <div id="mp-choice-display" class="mp-choice-display">
+        <p class="mp-instruction">Make your choice!</p>
+        
+        <!-- Original game choices -->
+        <div class="mp-choices" id="mp-choices-original">
+
+           <div class="game-container">
+
+              <div class="game-img">
+                <img src="images/bg-triangle.svg" alt="triangle" class="triangle">
+              </div>
+
+              <div class="paper mp-choice-btn" data-choice="paper">
+                <div class="choice">
+                  <img src="images/icon-paper.svg" alt="paper" class="paper-img">
+                </div>
+              </div>
+
+              <div class="scissors mp-choice-btn" data-choice="scissors">
+                <div class="choice">
+                  <img src="images/icon-scissors.svg" alt="scissors" class="scissors-img">
+                </div>
+              </div>
+
+              <div class="rock mp-choice-btn" data-choice="rock">
+                <div class="choice">
+                  <img src="images/icon-rock.svg" alt="rock" class="rock-img">
+                </div>
+              </div>
+
+           </div>
+
+        </div>
+
+        <!-- Bonus game choices -->
+        <div class="mp-choices bonus-choices" id="mp-choices-bonus" style="display: none;">
+          <div class="game-container">
+            <div class="game-img2">
+              <img src="images/bg-pentagon.svg" alt="bg-pentagon" class="pentagon">
+            </div>
+            <div class="scissor3 mp-choice-btn" data-choice="scissors">
+              <div class="choice2">
+                <img src="images/icon-scissors.svg" alt="scissors" class="scissors-img">
+              </div>
+            </div>
+            <div class="spock mp-choice-btn" data-choice="spock">
+              <div class="choice2">
+                <img src="images/icon-spock.svg" alt="spock" class="spock-img">
+              </div>
+            </div>
+            <div class="paper3 mp-choice-btn" data-choice="paper">
+              <div class="choice2">
+                <img src="images/icon-paper.svg" alt="paper" class="paper-img">
+              </div>
+            </div>
+            <div class="lizard mp-choice-btn" data-choice="lizard">
+              <div class="choice2">
+                <img src="images/icon-lizard.svg" alt="lizard" class="lizard-img">
+              </div>
+            </div>
+            <div class="rock3 mp-choice-btn" data-choice="rock">
+              <div class="choice2">
+                <img src="images/icon-rock.svg" alt="rock" class="rock-img">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mp-status">
+        <p id="mp-status-text">Waiting for players...</p>
+      </div>
+    </div>
+
+    <!-- Chat & Reactions -->
+    <div class="mp-chat-container">
+      <div class="chat-header">
+        <span>💬 Chat</span>
+        <button class="chat-toggle" id="chat-toggle">▼</button>
+      </div>
+      
+      <div class="chat-content" id="chat-content">
+        <div class="chat-messages" id="chat-messages">
+          <div class="chat-message system">Game started! Good luck! 🎮</div>
+        </div>
+
+        <div class="quick-reactions">
+          <button class="reaction-btn" data-reaction="👍">👍</button>
+          <button class="reaction-btn" data-reaction="😂">😂</button>
+          <button class="reaction-btn" data-reaction="🔥">🔥</button>
+          <button class="reaction-btn" data-reaction="💀">💀</button>
+        </div>
+
+        <div class="chat-input-container">
+          <input 
+            type="text" 
+            id="chat-input" 
+            placeholder="Type a message..." 
+            maxlength="100"
+            autocomplete="off"
+          >
+          <button id="chat-send">Send</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ============ ROUND RESULT ============ -->
+  <section class="round-result" data-section="round-result">
+    <div class="result-display">
+      <div class="result-choices">
+        <div class="result-player">
+          <p class="result-label" id="result-your-name-label">You</p>
+          <div id="result-your-choice"></div>
+        </div>
+
+        <div class="result-vs">VS</div>
+
+        <div class="result-player">
+          <p class="result-label" id="result-opponent-name-label">Opponent</p>
+          <div id="result-opponent-choice"></div>
+        </div>
+      </div>
+
+      <h1 class="result-message" id="result-message">YOU WIN!</h1>
+
+      <div class="result-scores">
+        <span id="result-score-display">You: 5 - Opponent: 3</span>
+      </div>
+
+      <button class="next-round-btn" id="btn-next-round">Next Round →</button>
+    </div>
+  </section>
+
+
+  <!-- ============ MATCH END ============ -->
+  <section class="match-end" data-section="match-end">
+    <div class="match-end-container">
+      <h1 class="match-end-title" id="match-end-title">🏆 YOU WIN! 🏆</h1>
+      
+      <div class="final-score">
+        <p>Final Score</p>
+        <h2 id="final-score-display">10 - 7</h2>
+      </div>
+
+      <div class="match-end-actions">
+        <button class="action-btn rematch-btn" id="btn-rematch">
+          🔄 Rematch
+        </button>
+        <button class="action-btn leave-btn" id="btn-leave-match">
+          🚪 Leave
+        </button>
+      </div>
+
+      <button class="view-history-btn" id="btn-view-history-end">📊 View History</button>
+    </div>
+  </section>
+
+
+  <!-- ============ GAME HISTORY ============ -->
+  <section class="game-history" data-section="history">
+    <header>
+      <nav class="navbar">
+        <img src="images/logo.svg" alt="logo" class="logo">
+        <button class="back-btn" id="history-back">← Back</button>
+      </nav>
+    </header>
+
+    <div class="history-container">
+      <h1 class="history-title">YOUR STATS</h1>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-value" id="stat-total-games">0</div>
+          <div class="stat-label">Total Games</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="stat-wins">0</div>
+          <div class="stat-label">Wins</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="stat-losses">0</div>
+          <div class="stat-label">Losses</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="stat-win-rate">0%</div>
+          <div class="stat-label">Win Rate</div>
+        </div>
+      </div>
+
+      <div class="streak-display">
+        <p>Current Streak: <strong id="stat-current-streak">0</strong> 🔥</p>
+        <p>Best Streak: <strong id="stat-best-streak">0</strong> ⭐</p>
+      </div>
+
+      <h2 class="recent-matches-title">Recent Matches</h2>
+      <div class="recent-matches" id="recent-matches">
+        <div class="no-matches">No matches played yet. Start your first game!</div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+  
+  <!-- Game Scripts -->
+  <script src="firebase-config.js"></script>
+  <script src="multiplayer.js"></script>
+
+</body>
+</html>
